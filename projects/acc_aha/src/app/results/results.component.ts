@@ -22,17 +22,19 @@ export class ResultsComponent implements OnInit, OnDestroy {
   error: any;
   suggestions: any[] = [];
 
-  constructor(public AccAhaService: ACCAHAService, private sof: SmartOnFhirService, private injector: Injector,
+  constructor(public Service: ACCAHAService, private sof: SmartOnFhirService, private injector: Injector,
               private statefulCdsService: StatefulCdsService) {
   }
+
+
 
   async ngOnInit() {
     this.loadingPatientData = true
     this.client = await FHIR.oauth2.ready()
     this.patient = await this.sof.getPatient()
-    await this.AccAhaService.init(this.client, this.patient)
+    await this.Service.init(this.client, this.patient)
     this.loadingPatientData = false
-    this.AccAhaService.onPrefetchStateChange({
+    this.Service.onPrefetchStateChange({
       callService: true,
       transformState: (state) => {
         this.scores = []
@@ -41,7 +43,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
           context: {
             patientId: this.patient?.id
           },
-          prefetch: CdsUtils.stateToPrefetch(state, this.AccAhaService.conceptDefinitions, <fhir4.Patient>this.patient, true)
+          prefetch: CdsUtils.stateToPrefetch(state, this.Service.conceptDefinitions, <fhir4.Patient>this.patient, true)
         }
       },
       handleServiceResponse: (response) => {
@@ -59,39 +61,54 @@ export class ResultsComponent implements OnInit, OnDestroy {
     this.destroy$.next()
   }
 
-  applySuggestions() {
-    const state = this.statefulCdsService.getState(this.AccAhaService.conceptDefinitions)
-    const prefetch = CdsUtils.stateToPrefetch(state, this.AccAhaService.conceptDefinitions, <fhir4.Patient>this.patient, true)
-    this.suggestions.forEach(card => card.suggestions.forEach((suggestion: any) => {
-      if (suggestion.apply) {
-        const resource: fhir4.Observation = suggestion.actions[0].resource
-        const definition = this.AccAhaService.conceptDefinitions.find((_definition: any) =>
-          _definition.code?.code === resource.code?.coding?.at(0)?.code)
-        if (definition && prefetch[definition.id]) {
-          prefetch[definition.id].total += 1
-          prefetch[definition.id].entry.splice(0, 1, {
-            resource: resource,
-            search: {
-              mode: 'match'
-            }
-          })
-        }
-      }
-    }))
-    this.statefulCdsService.callService({
-      serviceId: 'acc_aha',
-      language: 'en',
-      client: this.client,
-      patient: this.patient
-    }, {
-      prefetch,
-      context: {
-        patientId: this.patient?.id
-      }
-    }).then(response => this.handleServiceResponse(response, false), error => this.handleServiceError(error))
+  getPatient() :fhir4.Patient|undefined {
+    return this.patient
   }
 
-  private handleServiceResponse(response: any, updateSuggestions: boolean) {
+  getClient() :Client|undefined {
+    return this.client
+  }
+
+  applySuggestions() {
+    CdsUtils.applySuggestionsUtil(this , 'acc_aha')
+  }
+
+
+
+  //applySuggestions(result: ResultsComponent , serviceId: string) {
+  //  const state = result.statefulCdsService.getState(result.Service.conceptDefinitions)
+  //  const prefetch = CdsUtils.stateToPrefetch(state, result.Service.conceptDefinitions, <fhir4.Patient>result.getPatient(), true)
+  //  result.suggestions.forEach(card => card.suggestions.forEach((suggestion: any) => {
+  //    if (suggestion.apply) {
+  //      const resource: fhir4.Observation = suggestion.actions[0].resource
+  //      const definition = result.Service.conceptDefinitions.find((_definition: any) =>
+  //        _definition.code?.code === resource.code?.coding?.at(0)?.code)
+  //      if (definition && prefetch[definition.id]) {
+  //        prefetch[definition.id].total += 1
+  //        prefetch[definition.id].entry.splice(0, 1, {
+  //          resource: resource,
+  //          search: {
+  //            mode: 'match'
+  //          }
+  //        })
+  //      }
+  //    }
+  //  }))
+  //  this.statefulCdsService.callService({
+  //    serviceId: serviceId,
+  //    language: 'en',
+  //    client: result.getClient(),
+  //    patient: result.getPatient()
+  //  }, {
+  //    prefetch,
+  //    context: {
+  //      patientId: result.getPatient()?.id
+  //    }
+  //  }).then(response => response.handleServiceResponse(response, false), error => this.handleServiceError(error))
+  //}
+
+
+  public handleServiceResponse(response: any, updateSuggestions: boolean) {
     try {
       const acc_ahaCard = response.cards.find((card: any) => card.uuid === 'CVD CARD SCORE')
       const acc_ahaObs = <fhir4.Observation>acc_ahaCard.suggestions[0].actions[0].resource;
@@ -110,7 +127,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private handleServiceError(err: any) {
+  public handleServiceError(err: any) {
     console.error(err);
     this.error = err?.message || err?.toString() || 'Unknown error';
   }

@@ -5,7 +5,6 @@ import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
 import {Qrisk3Service} from "../qrisk3.service";
 import * as FHIR from "fhirclient";
-import {FhirUtils} from "../../../../common/src/lib/utils";
 
 @Component({
   selector: 'qrisk3-results',
@@ -23,7 +22,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
   error: any;
   suggestions: any[] = [];
 
-  constructor(public qrisk3Service: Qrisk3Service, private sof: SmartOnFhirService, private injector: Injector,
+  constructor(public Service: Qrisk3Service, private sof: SmartOnFhirService, private injector: Injector,
               private statefulCdsService: StatefulCdsService) {
   }
 
@@ -31,9 +30,9 @@ export class ResultsComponent implements OnInit, OnDestroy {
     this.loadingPatientData = true
     this.client = await FHIR.oauth2.ready()
     this.patient = await this.sof.getPatient()
-    await this.qrisk3Service.init(this.client, this.patient)
+    await this.Service.init(this.client, this.patient)
     this.loadingPatientData = false
-    this.qrisk3Service.onPrefetchStateChange({
+    this.Service.onPrefetchStateChange({
       callService: true,
       transformState: (state) => {
         this.scores = []
@@ -42,7 +41,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
           context: {
             patientId: this.patient?.id
           },
-          prefetch: CdsUtils.stateToPrefetch(state, this.qrisk3Service.conceptDefinitions, <fhir4.Patient>this.patient, true)
+          prefetch: CdsUtils.stateToPrefetch(state, this.Service.conceptDefinitions, <fhir4.Patient>this.patient, true)
         }
       },
       handleServiceResponse: (response) => {
@@ -60,36 +59,16 @@ export class ResultsComponent implements OnInit, OnDestroy {
     this.destroy$.next()
   }
 
+  getPatient() :fhir4.Patient|undefined {
+    return this.patient
+  }
+
+  getClient() :Client|undefined {
+    return this.client
+  }
+
   applySuggestions() {
-    const state = this.statefulCdsService.getState(this.qrisk3Service.conceptDefinitions)
-    const prefetch = CdsUtils.stateToPrefetch(state, this.qrisk3Service.conceptDefinitions, <fhir4.Patient>this.patient, true)
-    this.suggestions.forEach(card => card.suggestions.forEach((suggestion: any) => {
-      if (suggestion.apply) {
-        const resource: fhir4.Observation = suggestion.actions[0].resource
-        const definition = this.qrisk3Service.conceptDefinitions.find((_definition: any) =>
-          _definition.code?.code === resource.code?.coding?.at(0)?.code)
-        if (definition && prefetch[definition.id]) {
-          prefetch[definition.id].total += 1
-          prefetch[definition.id].entry.splice(0, 1, {
-            resource: resource,
-            search: {
-              mode: 'match'
-            }
-          })
-        }
-      }
-    }))
-    this.statefulCdsService.callService({
-      serviceId: 'qrisk3',
-      language: 'en',
-      client: this.client,
-      patient: this.patient
-    }, {
-      prefetch,
-      context: {
-        patientId: this.patient?.id
-      }
-    }).then(response => this.handleServiceResponse(response, false), error => this.handleServiceError(error))
+    CdsUtils.applySuggestionsUtil(this , 'qrisk3')
   }
 
   private handleServiceResponse(response: any, updateSuggestions: boolean) {
