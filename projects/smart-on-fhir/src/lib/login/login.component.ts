@@ -8,6 +8,11 @@ import * as FHIR from 'fhirclient'
 })
 export class LoginComponent {
 
+  externalLinks = [
+    { name: 'SMART Health IT', url: 'https://apps.smarthealthit.org/' },
+    { name: 'National Library of Medicine', url: 'https://lforms-smart-fhir.nlm.nih.gov/'},
+  ];
+
   login() {
     FHIR.oauth2.authorize({
       iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
