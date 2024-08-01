@@ -10,7 +10,7 @@ export class LoginComponent {
 
   externalLinks = [
     { name: 'SMART Health IT', url: 'https://apps.smarthealthit.org/' },
-    { name: 'National Library of Medicine', url: 'https://lforms-smart-fhir.nlm.nih.gov/'},
+    { name: 'SMART App Launcher by National Library of Medicine', url: 'https://lforms-smart-fhir.nlm.nih.gov/'},
   ];
 
   login() {
