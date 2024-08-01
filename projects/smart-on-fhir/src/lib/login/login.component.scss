@@ -23,6 +23,8 @@
       color: white;
       border: none;
       border-radius: 4px;
+      margin-bottom: 20px; // Add margin between buttons
+      width: 100%; // Ensure full width
       transition: background-color 0.3s;
 
       &:hover {
@@ -36,7 +38,7 @@
 
       h3 {
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 20px; // Add margin below heading
       }
 
       .link-button {
@@ -45,11 +47,14 @@
         margin-bottom: 10px;
 
         a {
+          display: block;
           padding: 10px 20px;
           text-decoration: none;
           color: #007bff;
           border: 1px solid #007bff;
           border-radius: 4px;
+          width: 100%; // Ensure full width
+          text-align: center; // Center text
           transition: background-color 0.3s, color 0.3s;
 
           &:hover {
