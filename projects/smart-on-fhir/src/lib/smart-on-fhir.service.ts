@@ -2,9 +2,7 @@ import {Injectable} from '@angular/core';
 import * as FHIR from 'fhirclient'
 import Client from "fhirclient/lib/Client";
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class SmartOnFhirService {
 
   private client$ = FHIR.oauth2.ready()
