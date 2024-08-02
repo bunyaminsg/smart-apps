@@ -1,4 +1,6 @@
-// config file for client settings and external links
+/*
+ * Config file for client settings and external links
+ */
 
 export const CONFIG = {
   clientSettings: {
