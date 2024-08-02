@@ -1,14 +1,10 @@
 import {Component, Injector, OnDestroy, Signal} from '@angular/core';
-import {RouterOutlet} from '@angular/router';
 import {SmartOnFhirService} from "smart-on-fhir";
-import {FormsModule} from "@angular/forms";
-import {CommonModule} from "@angular/common";
-import {HttpClientModule} from "@angular/common/http";
 import * as FHIR from 'fhirclient'
 import Client from "fhirclient/lib/Client";
 import {Subject} from "rxjs";
-import {CdsUtils, FhirUtils, StatefulCdsService, SmartCdsCommonModule} from "common";
-import {Qrisk3Service} from "./qrisk3.service";
+import {CdsDataService, StatefulCdsService} from "common";
+
 
 @Component({
   selector: 'qrisk3-root',
@@ -32,7 +28,7 @@ export class AppComponent  implements OnDestroy {
   private destroy$: Subject<void> = new Subject();
   private stateChanged$: Subject<any> = new Subject();
 
-  constructor(private sof: SmartOnFhirService, private qrisk3Service: Qrisk3Service,
+  constructor(private sof: SmartOnFhirService, private qrisk3Service: CdsDataService,
               private injector: Injector, private statefulCdsService: StatefulCdsService) {
   }
 
@@ -46,18 +42,15 @@ export class AppComponent  implements OnDestroy {
     this.patient = await this.sof.getPatient()
     this.age = (new Date().getFullYear()) - (new Date(<string>this.patient.birthDate).getFullYear())
     this.ageValid = (this.age < 85 && this.age > 24) ? 0 : (this.age < 25 ? 1 : 2)
-    await this.qrisk3Service.init(this.client, this.patient)
+    await this.qrisk3Service.init(this.client, this.patient, 'qrisk3')
     this.loadingPatientData = false
   }
 
   logout() {
-    const launchUrl =  <string>sessionStorage.getItem('launchUrl')
-    sessionStorage.clear()
-    window.location.href = launchUrl
+    const launchUrl = <string>sessionStorage.getItem('launchUrl');
+    sessionStorage.clear();
+    window.location.href = launchUrl;
   }
 
-  reset() {
-    this.statefulCdsService.resetState(this.conceptDefinitions)
-  }
 }
 
