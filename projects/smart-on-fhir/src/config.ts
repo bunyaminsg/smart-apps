@@ -6,7 +6,7 @@ export const CONFIG = {
   clientSettings: {
     iss: 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/',
     redirectUri: 'http://localhost:4200/callback',
-    clientId: 'd70cb3b8-8141-494d-b29d-515d7a071495',
+    clientId: '43a60ffa-242a-4bbe-bb17-97666be7189e',
     scope: 'patient/*.*'
   },
   externalLinks: [
